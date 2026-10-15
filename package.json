@@ -1,14 +1,10 @@
 {
   "name": "mapuii",
   "version": "1.0.0",
-  "private": true,
-  "description": "MAPUII - two-player online card game",
+  "description": "MAPUII online card games",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
-  },
-  "engines": {
-    "node": ">=18"
   },
   "dependencies": {
     "express": "^4.21.2",
