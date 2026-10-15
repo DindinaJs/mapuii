@@ -9,7 +9,9 @@ const server = http.createServer(app);
 const io = new Server(server);
 
 app.use(express.static('public'));
-
+app.get('/', (_, res) => {
+  res.sendFile(__dirname + '/index.html');
+});
 app.get('/health', (_, res) =>
   res.json({ ok: true, game: 'MAPUII' })
 );
