@@ -26,6 +26,26 @@ io.on('connection',s=>{
  s.on('playCard',({code,cardId})=>{const r=rooms.get(code);if(!r||r.phase!=='playing'||r.turnId!==s.id)return;const p=r.players.find(x=>x.id===s.id);const idx=p.hand.findIndex(c=>c.id===cardId);if(idx<0)return;const card=p.hand[idx];if(r.trick.length){const lead=r.trick[0].card.suit;if(p.hand.some(c=>c.suit===lead)&&card.suit!==lead)return sendErr(s,'You must follow suit when you can.')}p.hand.splice(idx,1);r.trick.push({playerId:s.id,card});if(r.trick.length===1){r.turnId=r.players.find(x=>x.id!==s.id).id;broadcast(r);return}const win=winner(r.trick);const wp=r.players.find(x=>x.id===win);wp.tricks++;r.history.push(`${wp.name} wins trick ${r.players.reduce((n,p)=>n+p.tricks,0)}.`);r.trick=[];if(r.players[0].hand.length===0){scoreHand(r)}else{r.turnId=win;r.message=`${wp.name} won the trick.`}broadcast(r)});
  s.on('nextHand',({code})=>{const r=rooms.get(code);if(!r||r.hostId!==s.id||r.phase!=='finished')return;r.handNo++;deal(r);broadcast(r)});
  s.on('leaveRoom',({code})=>{const r=rooms.get(code);if(!r)return;r.players=r.players.filter(p=>p.id!==s.id);if(r.players.length===0)rooms.delete(code);else{io.to(r.players[0].id).emit('roomClosed','The other player left the room.');rooms.delete(code)}});
- s.on('disconnect',()=>{for(const [code,r] of rooms){const p=r.players.find(x=>x.id===s.id);if(p){p.connected=false;broadcast(r);if(r.players.length===1&&r.phase==='lobby')rooms.delete(code)}}});
+ 
+s.on('disconnect', () => {
+  for (const [code, r] of rooms) {
+    const player = r.players.find(p => p.id === s.id);
+
+    if (!player) continue;
+
+    const otherPlayer = r.players.find(
+      p => p.id !== s.id && p.connected
+    );
+
+    if (otherPlayer) {
+      io.to(otherPlayer.id).emit(
+        'roomClosed',
+        'The other player disconnected. Please create a new room.'
+      );
+    }
+
+    rooms.delete(code);
+  }
 });
+
 const port=process.env.PORT||3000;server.listen(port,()=>console.log(`MAPUII server listening on ${port}`));
