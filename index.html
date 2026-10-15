@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#101a32"><title>MAPUII</title>
+<style>
+:root{--navy:#101a32;--navy2:#192849;--gold:#f4c76b;--cream:#f6f3eb;--green:#176b4d;--red:#c83d4d}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top,#243a5e,#0c1427 70%);color:#f8fafc;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;min-height:100vh}
+button,input{font:inherit}button{border:0;border-radius:12px;padding:12px 16px;font-weight:750;cursor:pointer}button:disabled{opacity:.4;cursor:not-allowed}
+.wrap{max-width:780px;margin:auto;padding:16px 14px 28px}.top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px}.brand{font-weight:900;letter-spacing:.08em;font-size:clamp(20px,4vw,28px)}.brand span{color:var(--gold)}.pill{border:1px solid #ffffff2b;border-radius:99px;padding:7px 10px;font-size:12px;color:#c9d5e9}
+.panel{background:#ffffff0b;border:1px solid #ffffff1b;border-radius:20px;padding:16px;margin:12px 0;box-shadow:0 10px 30px #0002}.hidden{display:none!important}.muted{color:#b9c5d8}.small{font-size:13px}.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.row>*{flex:1}.field{width:100%;padding:12px 13px;border-radius:12px;border:1px solid #ffffff30;background:#0c1529;color:white;margin:6px 0 12px}.primary{background:var(--gold);color:#192238}.secondary{background:#263b60;color:#fff}.danger{background:#8e2937;color:#fff}.roomtitle{font-size:12px;text-transform:uppercase;letter-spacing:.13em;color:#b8c7df}.roomcode{font-size:30px;letter-spacing:.18em;color:var(--gold);font-weight:900}.table{background:linear-gradient(145deg,#176b4d,#0c4d3b);border:7px solid #5a402c;border-radius:30px;padding:14px;box-shadow:inset 0 0 0 2px #ffffff25,0 16px 35px #0004}
+.seat{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:#071d19a8;border-radius:12px;margin:6px 0}.seat strong{display:block}.tag{font-size:11px;background:#ffffff1b;padding:4px 7px;border-radius:99px}
+.trickarea{min-height:126px;display:flex;justify-content:center;align-items:center;gap:16px;padding:12px 0}.playcard{background:#fffdf7;color:#111827;border-radius:10px;width:70px;height:96px;display:flex;flex-direction:column;justify-content:space-between;padding:7px;font-size:20px;box-shadow:0 4px 12px #0004}.playcard.red{color:#c6283e}.playcard .suitbig{text-align:center;font-size:30px;line-height:1}.playcard .corner{font-weight:800;line-height:1}.hand{display:flex;justify-content:center;gap:5px;flex-wrap:wrap;padding:8px 0 2px}.cardbtn{background:#fffdf7;color:#151b28;border:2px solid #d7d8dc;border-radius:9px;width:clamp(35px,7.5vw,49px);height:68px;padding:4px 0;display:flex;flex-direction:column;align-items:center;justify-content:space-between;font-size:16px;box-shadow:0 3px 0 #c8c9ce}.cardbtn.red{color:#c6283e}.cardbtn:disabled{opacity:.42}.cardbtn:active:not(:disabled){transform:translateY(2px);box-shadow:none}.scoregrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.scorebox{background:#ffffff0b;border-radius:12px;padding:10px}.scorebox b{font-size:22px;color:var(--gold)}.notice{background:#f4c76b18;border:1px solid #f4c76b55;border-radius:12px;padding:11px;color:#ffe7a7;margin:8px 0}.log{max-height:115px;overflow:auto;font-size:12px;color:#c6d2e6}.footer{text-align:center;color:#8d9bb4;font-size:11px;padding-top:14px}
+@media(min-width:600px){.panel{padding:20px}.cardbtn{width:48px;height:72px}.playcard{width:78px;height:106px}}
+</style></head>
+<body><main class="wrap">
+<header class="top"><div class="brand">MAPUII</div><div class="pill" id="connection">● Not connected</div></header>
+<section id="lobby" class="panel">
+<h2 style="margin:0 0 6px">Your private MAPUII card table</h2><p class="muted" style="margin-top:0">Two players. Two phones. One room code.</p>
+<label class="small muted" for="playerName">Your name</label><input class="field" id="playerName" maxlength="18" placeholder="Enter your name" value="Player">
+<div class="row"><button class="primary" id="createBtn">Create room</button><button class="secondary" id="joinToggle">Join a room</button></div>
+<div id="joinArea" class="hidden" style="margin-top:12px"><label class="small muted" for="roomInput">Room code</label><input class="field" id="roomInput" maxlength="5" placeholder="ABCDE" autocapitalize="characters"><button class="primary" id="joinBtn" style="width:100%">Join room</button></div>
+<div class="notice small">Rules: 13 cards each, bid the number of tricks you expect to win, and ♠ spades are trump. This is a two-player adaptation of Call Break.</div>
+</section>
+<section id="roomPanel" class="panel hidden">
+<div class="row"><div><div class="roomtitle">Room code</div><div id="roomCode" class="roomcode">-----</div></div><button id="copyBtn" class="secondary">Copy invite</button></div>
+<p id="roomStatus" class="muted small">Waiting for your friend to join…</p>
+<div class="row"><button id="startBtn" class="primary" disabled>Start game</button><button id="leaveBtn" class="secondary">Leave room</button></div>
+</section>
+<section id="game" class="hidden">
+<div class="panel"><div class="scoregrid"><div class="scorebox"><div id="meLabel" class="muted small">You</div><b id="myScore">0</b><div class="small muted">tricks this hand</div><div class="small">Bid: <span id="myBid">—</span></div></div><div class="scorebox"><div id="oppLabel" class="muted small">Opponent</div><b id="oppScore">0</b><div class="small muted">tricks this hand</div><div class="small">Bid: <span id="oppBid">—</span></div></div></div></div>
+<div class="table"><div id="oppSeat" class="seat"><div><strong id="oppName">Opponent</strong><span class="muted small" id="oppInfo">Waiting…</span></div><span class="tag" id="oppTurn">OPPONENT</span></div>
+<div class="trickarea" id="trickArea"><span class="muted small">Cards played here</span></div>
+<div id="mySeat" class="seat"><div><strong id="myName">You</strong><span class="muted small" id="myInfo">Your turn</span></div><span class="tag" id="myTurn">YOU</span></div></div>
+<div class="panel"><div class="row"><div><strong id="actionTitle">Your hand</strong><div id="actionSub" class="muted small">Tap a card to play it.</div></div><div id="bidControls" class="hidden" style="max-width:155px"><select id="bidSelect" class="field" style="margin:0 0 7px"><option value="1">Bid 1</option><option value="2">Bid 2</option><option value="3">Bid 3</option><option value="4">Bid 4</option><option value="5">Bid 5</option><option value="6">Bid 6</option><option value="7">Bid 7</option><option value="8">Bid 8</option><option value="9">Bid 9</option><option value="10">Bid 10</option><option value="11">Bid 11</option><option value="12">Bid 12</option><option value="13">Bid 13</option></select><button id="bidBtn" class="primary" style="width:100%">Lock bid</button></div></div><div id="hand" class="hand"></div><div id="gameMessage" class="notice small hidden"></div><button id="nextHandBtn" class="primary hidden" style="width:100%;margin-top:8px">Next hand</button></div>
+<div class="panel"><strong>Round history</strong><div id="history" class="log">Your completed tricks and round results will appear here.</div></div>
+</section>
+<div id="toast" class="notice hidden" role="status"></div><div class="footer">MAPUII · Friendly private matches · Keep this page open while playing</div>
+</main>
+<script src="/socket.io/socket.io.js"></script><script>
+const $=id=>document.getElementById(id);let socket=null,room=null,playerId=null,state=null,joinMode=false;
+const suits=['♠','♥','♦','♣'],ranks=['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
+function toast(s){$('toast').textContent=s;$('toast').classList.remove('hidden');setTimeout(()=>$('toast').classList.add('hidden'),3500)}
+function connect(){if(socket)return;socket=io();socket.on('connect',()=>{$('connection').textContent='● Connected';$('connection').style.color='#8df0b4'});socket.on('disconnect',()=>{$('connection').textContent='● Reconnecting…';$('connection').style.color='#ffd17c'});socket.on('errorMessage',m=>toast(m));socket.on('roomState',s=>{state=s;room=s.code;playerId=s.yourId;render()});socket.on('gameState',s=>{state=s;render()});socket.on('roomClosed',m=>{toast(m||'Room closed');location.reload()})}
+function show(el,on=true){$(el).classList.toggle('hidden',!on)}
+$('joinToggle').onclick=()=>{joinMode=!joinMode;show('joinArea',joinMode)};
+$('createBtn').onclick=()=>{connect();socket.emit('createRoom',{name:$('playerName').value.trim()||'Player'})};
+$('joinBtn').onclick=()=>{connect();socket.emit('joinRoom',{name:$('playerName').value.trim()||'Player',code:$('roomInput').value.trim().toUpperCase()})};
+$('copyBtn').onclick=async()=>{const text=`Join my MAPUII room: ${room}`;try{await navigator.clipboard.writeText(text);toast('Room invite copied! Share code '+room)}catch{toast('Share this room code: '+room)}};
+$('startBtn').onclick=()=>socket.emit('startGame',{code:room});
+$('leaveBtn').onclick=()=>{if(socket)socket.emit('leaveRoom',{code:room});location.reload()};
+$('bidBtn').onclick=()=>socket.emit('placeBid',{code:room,bid:Number($('bidSelect').value)});
+$('nextHandBtn').onclick=()=>socket.emit('nextHand',{code:room});
+function cardText(c){return c.rank+c.suit}
+function render(){
+ if(!state)return;show('lobby',false);show('roomPanel',true);$('roomCode').textContent=state.code;
+ const players=state.players||[];const me=players.find(p=>p.id===playerId)||state.me||{};const opp=players.find(p=>p.id!==playerId)||state.opponent||{};
+ $('roomStatus').textContent=players.length<2?'Waiting for your friend to join…':'Both players are in. Room creator can start.';
+ $('startBtn').disabled=!(state.hostId===playerId&&players.length===2&&(!state.phase||state.phase==='lobby'));
+ show('game',!!state.phase&&state.phase!=='lobby');if(!state.phase||state.phase==='lobby')return;
+ $('myName').textContent=me.name||'You';$('oppName').textContent=opp.name||'Opponent';$('meLabel').textContent=me.name||'You';$('oppLabel').textContent=opp.name||'Opponent';
+ $('myScore').textContent=me.tricks||0;$('oppScore').textContent=opp.tricks||0;$('myBid').textContent=me.bid??'—';$('oppBid').textContent=opp.bid??'—';
+ $('myInfo').textContent=me.connected===false?'Disconnected':(state.turnId===playerId?'Your turn':'Waiting for opponent');$('oppInfo').textContent=opp.connected===false?'Disconnected':(state.turnId!==playerId?'Playing…':'Waiting…');
+ $('myTurn').textContent=state.turnId===playerId?'YOUR TURN':'WAIT';$('oppTurn').textContent=state.turnId!==playerId?'THEIR TURN':'WAIT';
+ const area=$('trickArea');area.innerHTML='';if(!state.trick?.length)area.innerHTML='<span class="muted small">Lead with any card</span>';else state.trick.forEach(t=>{const d=document.createElement('div');d.className='playcard '+('♥♦'.includes(t.card.suit)?'red':'');d.innerHTML=`<div class="corner">${t.card.rank}<br>${t.card.suit}</div><div class="suitbig">${t.card.suit}</div><div class="small">${esc(t.name)}</div>`;area.appendChild(d)});
+ const needBid=state.phase==='bidding'&&me.bid==null;show('bidControls',needBid&&state.turnId===playerId);$('actionTitle').textContent=state.phase==='bidding'?'Call your bid':state.phase==='finished'?'Hand complete':'Your cards';$('actionSub').textContent=state.phase==='bidding'?'How many tricks do you expect to win?':state.phase==='finished'?'Review scores before the next hand.':'Tap a legal card to play it.';
+ const hand=$('hand');hand.innerHTML='';(me.hand||[]).forEach(c=>{const b=document.createElement('button');b.className='cardbtn '+('♥♦'.includes(c.suit)?'red':'');b.innerHTML=`<b>${c.rank}</b><span>${c.suit}</span>`;b.disabled=state.phase!=='playing'||state.turnId!==playerId||!legal(c,me.hand,state.trick);b.onclick=()=>socket.emit('playCard',{code:room,cardId:c.id});hand.appendChild(b)});
+ const msg=$('gameMessage');show('nextHandBtn',state.phase==='finished'&&state.hostId===playerId);show('gameMessage',!!state.message);msg.textContent=state.message||'';
+ $('history').innerHTML=(state.history||[]).slice(-16).map(x=>`<div>${esc(x)}</div>`).join('')||'No completed tricks yet.';
+}
+function legal(c,hand,trick){if(!trick||!trick.length)return true;const lead=trick[0].card.suit;return !hand.some(x=>x.suit===lead)||c.suit===lead}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+</script></body></html>
